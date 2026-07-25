@@ -1,0 +1,21 @@
+services:
+  transcriber:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - type: bind
+        source: ./inputs
+        target: /data/inputs
+        read_only: true
+      - type: bind
+        source: ./outputs
+        target: /data/outputs
+      - type: bind
+        source: ./models
+        target: /models
+    environment:
+      HF_HOME: /models
+      HUGGINGFACE_HUB_CACHE: /models/hub
+      TRANSFORMERS_CACHE: /models/transformers

@@ -1,0 +1,14 @@
+inputs/*
+!inputs/.gitkeep
+
+outputs/*
+!outputs/.gitkeep
+
+models/*
+!models/.gitkeep
+
+__pycache__/
+*.pyc
+.pytest_cache/
+
+.DS_Store
