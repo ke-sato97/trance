@@ -15,7 +15,12 @@ services:
       - type: bind
         source: ./models
         target: /models
+      - type: bind
+        source: ${HOST_MUSIC_DIR:-${HOME}/Music}
+        target: /host/music
+        read_only: true
     environment:
       HF_HOME: /models
       HUGGINGFACE_HUB_CACHE: /models/hub
       TRANSFORMERS_CACHE: /models/transformers
+      HOST_MUSIC_DIR: ${HOST_MUSIC_DIR:-${HOME}/Music}

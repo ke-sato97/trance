@@ -33,6 +33,19 @@ inputs/meeting.mp3
 docker compose run --rm transcriber "meeting.mp3"
 ```
 
+ホストPCの `Music` ディレクトリ配下にある音声は、絶対パスでも指定できます。
+
+```bash
+docker compose run --rm transcriber "/Users/username/Music/conversation.mp3"
+```
+
+別PCでも通常はそのPCの `${HOME}/Music` が read-only で使われます。別のディレクトリを絶対パス指定で使いたい場合は、`HOST_MUSIC_DIR` を指定します。
+
+```bash
+HOST_MUSIC_DIR="/Users/username/Desktop/audio" \
+  docker compose run --rm transcriber "/Users/username/Desktop/audio/meeting.mp3"
+```
+
 出力ファイルは `outputs/` に保存されます。
 
 ```text

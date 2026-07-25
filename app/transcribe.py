@@ -1,12 +1,15 @@
 import argparse
+import os
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from faster_whisper import WhisperModel
 
 
 INPUT_DIR = Path("/data/inputs")
 OUTPUT_DIR = Path("/data/outputs")
+HOST_MUSIC_DIR = PurePosixPath(os.environ.get("HOST_MUSIC_DIR", ""))
+HOST_MUSIC_MOUNT = Path("/host/music")
 SUPPORTED_EXTENSIONS = {".mp3", ".wav", ".m4a", ".flac"}
 SUPPORTED_MODELS = {"tiny", "base", "small", "medium"}
 
@@ -17,7 +20,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "filename",
-        help="Audio filename under inputs/. Do not pass an absolute path.",
+        help="Audio filename under inputs/ or an absolute path under your Music directory.",
     )
     parser.add_argument(
         "--model",
@@ -38,11 +41,33 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
-def validate_input(filename: str) -> Path:
-    if Path(filename).is_absolute() or "/" in filename or "\\" in filename:
-        fail("inputs内のファイル名だけを指定してください。")
+def resolve_absolute_input(filename: str) -> Path:
+    if "\\" in filename:
+        fail("Windows形式のパスは指定できません。")
 
-    input_path = INPUT_DIR / filename
+    host_path = PurePosixPath(filename)
+    if not HOST_MUSIC_DIR:
+        fail("絶対パスを使うにはHOST_MUSIC_DIRを設定してください。")
+
+    try:
+        relative_path = host_path.relative_to(HOST_MUSIC_DIR)
+    except ValueError:
+        fail(f"絶対パスで指定できるのはMusicディレクトリ配下のみです: {HOST_MUSIC_DIR}")
+
+    if any(part == ".." for part in relative_path.parts):
+        fail("親ディレクトリを参照するパスは指定できません。")
+
+    return HOST_MUSIC_MOUNT / Path(relative_path)
+
+
+def validate_input(filename: str) -> Path:
+    if Path(filename).is_absolute():
+        input_path = resolve_absolute_input(filename)
+    else:
+        if "/" in filename or "\\" in filename:
+            fail("inputs内のファイル名だけを指定するか、Music配下の絶対パスを指定してください。")
+
+        input_path = INPUT_DIR / filename
 
     if not input_path.exists():
         fail(f"入力ファイルが見つかりません: {input_path}")
