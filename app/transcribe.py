@@ -82,6 +82,13 @@ def validate_input(filename: str) -> Path:
     return input_path
 
 
+def format_timestamp(seconds: float) -> str:
+    total_seconds = max(0, int(seconds))
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
 def format_segments(segments) -> str:
     paragraphs: list[str] = []
 
@@ -91,7 +98,9 @@ def format_segments(segments) -> str:
             continue
 
         print(f"認識しました: {text[:60]}")
-        paragraphs.append(text)
+        start = format_timestamp(segment.start)
+        end = format_timestamp(segment.end)
+        paragraphs.append(f"[{start} - {end}]\n{text}")
 
     return "\n\n".join(paragraphs).strip() + "\n"
 
